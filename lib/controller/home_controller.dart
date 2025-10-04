@@ -76,13 +76,14 @@ class HomeController extends GetxController {
             .takePhotoCommandImplementer(cameraController)
             .then<XFile>((newPicture) async {
               await Vibration.vibrate(duration: 200).then((_) => Get.back());
+              caption.value = "";
               return newPicture;
             });
-        caption.value = "";
+
         break;
       case 3:
+        caption.value = "loading...";
         if (picture.value != null) {
-          caption.value = "loading...";
           final resultCaption = await CommandsImplementer.instance.postImage(
             picture.value!,
           );
