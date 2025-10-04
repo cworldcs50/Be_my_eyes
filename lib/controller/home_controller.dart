@@ -82,10 +82,12 @@ class HomeController extends GetxController {
             picture.value!,
           );
           caption.value = resultCaption ?? "";
+          log(caption.value);
         } else {
           Vibration.vibrate(duration: 200);
         }
         log("3");
+        break;
       case 4:
         exit(0);
       default:
