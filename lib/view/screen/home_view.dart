@@ -28,7 +28,6 @@ class HomeView extends StatelessWidget {
           padding: const EdgeInsets.only(left: 10, right: 10),
           child: SingleChildScrollView(
             controller: controller.scrollController,
-            
             child: RichText(
               text: TextSpan(
                 children: List.generate(words.length, (index) {

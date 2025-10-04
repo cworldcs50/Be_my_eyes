@@ -8,15 +8,13 @@ import '../core/services/app_services.dart';
 import '../core/class/commands_implementer.dart';
 
 class HomeController extends GetxController {
-  String? audioPath;
-  bool showGlow = false;
   RxString caption = "".obs;
+  RxInt currentWordIndex = 0.obs;
   Rx<XFile?> picture = Rx<XFile?>(null);
   final CameraController cameraController =
       Get.find<AppServices>().cameraService.controller;
-  final wakeWord = Get.find<AppServices>().wakeWordService;
-  RxInt currentWordIndex = 0.obs;
   ScrollController scrollController = ScrollController();
+  final wakeWord = Get.find<AppServices>().wakeWordService;
 
   @override
   Future<void> onInit() async {
@@ -42,7 +40,7 @@ class HomeController extends GetxController {
 
   void _autoScroll(int index) {
     scrollController.animateTo(
-      index * 30.0,
+      index * 40.0,
       duration: Duration(milliseconds: 300),
       curve: Curves.easeInOut,
     );
@@ -73,13 +71,9 @@ class HomeController extends GetxController {
         break;
       case 2:
         picture.value = await CommandsImplementer.instance
-            .takePhotoCommandImplementer(cameraController)
-            .then<XFile>((newPicture) async {
-              await Vibration.vibrate(duration: 200).then((_) => Get.back());
-              caption.value = "";
-              return newPicture;
-            });
-
+            .takePhotoCommandImplementer(cameraController);
+        await Vibration.vibrate(duration: 200).then((_) => Get.back());
+        caption.value = "";
         break;
       case 3:
         caption.value = "loading...";
