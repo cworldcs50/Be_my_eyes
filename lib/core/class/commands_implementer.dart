@@ -1,26 +1,23 @@
+import 'dart:io';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 import 'package:get/get.dart';
 import 'package:camera/camera.dart';
-import 'package:vibration/vibration.dart';
-import '../../controller/home_controller.dart';
-import '../../view/screen/camera_view.dart';
-import "package:http/http.dart" as http;
-import 'package:path_provider/path_provider.dart';
-import 'package:audioplayers/audioplayers.dart';
-
 import '../services/app_services.dart';
+import "package:http/http.dart" as http;
+import 'package:vibration/vibration.dart';
+import '../../view/screen/camera_view.dart';
+import '../../controller/home_controller.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:path_provider/path_provider.dart';
 
 class CommandsImplementer {
   CommandsImplementer._();
-  factory CommandsImplementer() => instance;
-
-  static final instance = CommandsImplementer._();
-  final AudioPlayer _player = AudioPlayer();
-
   AudioPlayer get player => _player;
+  final AudioPlayer _player = AudioPlayer();
+  factory CommandsImplementer() => instance;
+  static final instance = CommandsImplementer._();
 
   Future<void> beMyEyesCommandImplementer() async {
     await Vibration.vibrate(duration: 1000).then((_) async {
@@ -53,6 +50,8 @@ class CommandsImplementer {
   }
 
   Future<String?> postImage(XFile image) async {
+    final homeCtrl = Get.find<HomeController>();
+    homeCtrl.caption.value = "loading...";
     try {
       var uri = Uri.parse(
         "https://unpragmatic-unabsorbingly-kamryn.ngrok-free.dev/api/detect",
@@ -112,28 +111,29 @@ class CommandsImplementer {
         final filePath = "${dir.path}/$fileName";
 
         File file = File(filePath);
+        final homeCtrl = Get.find<HomeController>();
         await file.writeAsBytes(audioResponse.bodyBytes);
 
         log("🎵 Saved audio to $filePath");
-        log("Audio file exists: ${await File(filePath).exists()}");
-        log("Audio file size: ${(await File(filePath).length())} bytes");
 
-        await _player.play(DeviceFileSource(filePath));
+        final captionText = response["caption"] ?? "";
+        homeCtrl.caption.value = captionText;
 
         _player.onPositionChanged.listen((position) async {
-          final caption = Get.find<HomeController>().caption.value;
-          final words = caption.split(' ');
+          final words = homeCtrl.caption.value.split(' ');
           final duration = await _player.getDuration();
           if (duration == null || words.isEmpty) return;
 
           final progress = position.inMilliseconds / duration.inMilliseconds;
           final currentIndex = (progress * words.length).floor();
 
-          Get.find<HomeController>().currentWordIndex.value = currentIndex;
-          Get.find<HomeController>().scrollToWord(currentIndex);
+          homeCtrl.currentWordIndex.value = currentIndex;
+          homeCtrl.scrollToWord(currentIndex);
         });
 
-        return response["caption"];
+        await _player.play(DeviceFileSource(filePath));
+
+        return captionText;
       } else {
         log("❌ Failed to download audio: ${audioResponse.statusCode}");
         log(audioResponse.body);

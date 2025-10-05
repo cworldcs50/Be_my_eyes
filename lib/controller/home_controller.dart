@@ -70,23 +70,20 @@ class HomeController extends GetxController {
         );
         break;
       case 2:
-        picture.value = await CommandsImplementer.instance
-            .takePhotoCommandImplementer(cameraController);
-        await Vibration.vibrate(duration: 200).then((_) => Get.back());
-        caption.value = "";
+        await CommandsImplementer.instance
+            .takePhotoCommandImplementer(cameraController)
+            .then((picture) async {
+              this.picture.value = picture;
+              await Vibration.vibrate(duration: 200).then((_) => Get.back());
+              caption.value = "";
+            });
         break;
       case 3:
-        caption.value = "loading...";
         if (picture.value != null) {
-          final resultCaption = await CommandsImplementer.instance.postImage(
-            picture.value!,
-          );
-          caption.value = resultCaption ?? "";
-          log(caption.value);
-        } else {
-          Vibration.vibrate(duration: 200);
+          await CommandsImplementer.instance
+              .postImage(picture.value!)
+              .then((resultCaption) => caption.value = resultCaption ?? "");
         }
-        log("3");
         break;
       case 4:
         exit(0);
